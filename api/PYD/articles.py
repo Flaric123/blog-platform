@@ -1,11 +1,10 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
-from pydantic import BaseModel
+from typing import List, Optional, Annotated
+from pydantic import BaseModel, Field
 from PYD.categories import CategoryReturn
 from PYD.users import UserReturn
 from PYD.comments import CommentReturn
-
 
 class ArticleStatus(str, Enum):
     draft = "draft"
@@ -30,10 +29,11 @@ class ArticleReturn(ArticleBase):
 
 class ArticleCreate(ArticleBase):
     status: ArticleStatus = ArticleStatus.draft
-    category_ids: List[int] = []
+    author_id: Annotated[int, Field(exclude=True)]
+    category_ids: Annotated[List[int], Field(exclude=True)] = []
 
 class ArticleUpdate(BaseModel):
-    title: Optional[str]
-    content: Optional[str]
-    status: Optional[ArticleStatus]
-    category_ids: Optional[List[int]]
+    title: Optional[str] = None
+    content: Optional[str]= None
+    status: Optional[ArticleStatus]= None
+    category_ids: Optional[List[int]]= None

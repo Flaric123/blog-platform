@@ -1,14 +1,15 @@
 from sqlalchemy import (
     Column, Integer, String, Text, DateTime, Enum, ForeignKey, Table
 )
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship, declarative_base, Mapped, mapped_column
 import enum
+from typing import List
 from datetime import datetime
 
 Base = declarative_base()
 
 #
-#   BLOGS
+#   BLOG
 #
 
 class ArticleStatus(enum.Enum):
@@ -46,6 +47,9 @@ class Category(Base):
 
     articles = relationship("Article", secondary=article_category_table, back_populates="categories")
 
+    def __repr__(self):
+        return f"<Category(id={self.id}, title='{self.name}')>"
+
 class Comment(Base):
     __tablename__ = "comments"
 
@@ -53,7 +57,7 @@ class Comment(Base):
     article_id = Column(Integer, ForeignKey("articles.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     content = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now())
 
     article = relationship("Article", back_populates="comments")
     user = relationship("User", back_populates="comments")
@@ -65,26 +69,15 @@ class Comment(Base):
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer(), primary_key=True, index=True)
     username = Column(String(50), unique=True, nullable=False, index=True)
     email = Column(String(100), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.now())
+    role = Column(String(50), nullable=False)
 
     # Relationships
     articles = relationship("Article", back_populates="author", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="user", cascade="all, delete-orphan")
-    roles = relationship("Role", secondary="user_roles", back_populates="users")
 
-class Role(Base):
-    __tablename__ = "roles"
-
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(20), unique=True, nullable=False)
-
-    users = relationship("User", secondary="user_roles", back_populates="roles")
-
-class UserRole(Base):
-    __tablename__ = "user_roles"
-
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
-    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True)
+    def __repr__(self):
+        return f"<User(id={self.id}, name='{self.username}')>"

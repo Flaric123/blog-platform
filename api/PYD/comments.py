@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
-from pydantic import BaseModel
+from typing import List, Optional, Annotated
+from pydantic import BaseModel, Field
 from PYD.users import UserReturn
 
 class CommentBase(BaseModel):
@@ -17,10 +17,8 @@ class CommentReturn(CommentBase):
         orm_mode = True
 
 class CommentCreate(CommentBase):
-    article_id: int
-    user_id: int
+    article_id: Annotated[int, Field(exclude=True)]
+    user_id: Annotated[int, Field(exclude=True)]
 
 class CommentUpdate(CommentBase):
-    article_id: Optional[int]
-    user_id: Optional[int]
-    content: Optional[str]
+    content: Optional[str]=None
