@@ -71,9 +71,8 @@ class User(Base):
 
     id = Column(Integer(), primary_key=True, index=True)
     username = Column(String(50), unique=True, nullable=False, index=True)
-    email = Column(String(100), unique=True, nullable=False, index=True)
-    created_at = Column(DateTime, default=datetime.now())
     role = Column(String(50), nullable=False)
+    hashed_password=Column(String(), nullable=False)
 
     # Relationships
     articles = relationship("Article", back_populates="author", cascade="all, delete-orphan")
@@ -81,3 +80,7 @@ class User(Base):
 
     def __repr__(self):
         return f"<User(id={self.id}, name='{self.username}')>"
+    
+# class Token(Base):  
+#   access_token: str | None = None  
+#   refresh_token: str | None = None

@@ -12,9 +12,9 @@ with get_db().__next__() as session:
     ]
 
     users=[
-        User(username='user1', email='u1@gmail.com', role='guest'),
-        User(username='user2', email='u3@gmail.com', role='user'),
-        User(username='user3', email='u2@gmail.com', role='admin')
+        User(username='user1', role='guest', hashed_password='hdjsbdvdhxbzbsksjdbdbzjdhh45tbdbd7bdbd'),
+        User(username='user2', role='user', hashed_password='hdjsbdvdhxbzbsksjdbdbzjdhh45tbdbd7bdbd'),
+        User(username='user3', role='admin', hashed_password='hdjsbdvdhxbzbsksjdbdbzjdhh45tbdbd7bdbd')
     ]
 
     articles=[
