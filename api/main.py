@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.security import OAuth2PasswordRequestForm
 from routers import articles, categories, comments, users
+from fastapi.middleware.cors import CORSMiddleware
 from auth import *
 
 app = FastAPI()
@@ -8,6 +9,14 @@ app = FastAPI()
 app.include_router(categories.router)
 app.include_router(articles.router)
 app.include_router(comments.router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['http://localhost:5173'],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/token")
 async def login_for_access_token(

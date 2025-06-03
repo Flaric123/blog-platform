@@ -4,7 +4,6 @@ from fastapi import Depends,HTTPException, status, FastAPI
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session, Mapped
 from jose import JWTError, jwt
-from jwt.exceptions import JWT
 from pydantic import BaseModel
 from jwt.exceptions import InvalidTokenError
 from typing import Annotated
