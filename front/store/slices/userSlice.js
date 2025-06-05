@@ -1,19 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit'
+import {GUEST_DATA_DEFAULT} from '../../src/consts'
 
 const USER_DATA_LOCAL_STORAGE_KEY = "userSlice/user";
 
-const GUEST_DATA_DEFAULT = Object.freeze({
-  role: "non-user",
-  apiAccessToken: undefined,
-  id: undefined,
-  phone: undefined,
-  email: undefined,
-  name: undefined,
-  avatar: undefined, 
-})
-
 const readUserFromLocalStorage = () => {
   const user = localStorage.getItem(USER_DATA_LOCAL_STORAGE_KEY);
+  console.log(user)
   return user ? JSON.parse(user) : null;
 }
 

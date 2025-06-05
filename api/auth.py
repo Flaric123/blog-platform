@@ -7,6 +7,8 @@ from jose import JWTError, jwt
 from pydantic import BaseModel
 from jwt.exceptions import InvalidTokenError
 from typing import Annotated
+from models import User
+from PYD.users import UserReturn
 from database import get_db
   
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")  
@@ -40,14 +42,14 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app = FastAPI()
 
-class User(BaseModel):
-    username: str
-    email: str | None = None
-    full_name: str | None = None
-    disabled: bool | None = None
+# class User(BaseModel):
+#     username: str
+#     email: str | None = None
+#     full_name: str | None = None
+#     disabled: bool | None = None
 
-class UserInDB(User):
-    hashed_password: str
+# class UserInDB(User):
+#     hashed_password: str
 
 
 #
@@ -67,14 +69,15 @@ def get_password_hash(password):
 #
 
 
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
+def get_user(username: str, db:Session):
+    return db.query(User).filter(User.username==username).first()
+    # if username in db:
+    #     user_dict = db[username]
+    #     return UserInDB(**user_dict)
 
 
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
+def authenticate_user(username: str, password: str, db:Session=Depends(get_db)):
+    user = get_user(username,db=db)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -99,14 +102,6 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     if user is None:
         raise credentials_exception
     return user
-
-
-async def get_current_active_user(
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
 
 #
 #   TOKEN LOGIC
@@ -135,6 +130,13 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 #
 #   ROLE LOGIc
 #
+
+async def get_current_active_user(
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
 
 class RoleChecker:  
   def __init__(self, allowed_roles):  

@@ -23,10 +23,10 @@ function useAPI(){
       }
     });
 
-    // const prepareService = service => {
-    //   service.services = services;
-    //   service.http = http;
-    // }
+    const prepareService = service => {
+      service.services = services;
+      service.http = http;
+    }
 
     userService.services=services
     userService.http=axios.create({
