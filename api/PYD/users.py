@@ -7,7 +7,7 @@ class UserBase(BaseModel):
     username: str
 
 class UserReturn(UserBase):
-    api_access_token:str
+    id:int
     role: str
 
     class Config:

@@ -13,9 +13,9 @@ with get_db().__next__() as session:
     ]
 
     users=[
-        User(username='user1', role='reader', hashed_password=get_password_hash('123'),api_access_token='none'),
-        User(username='user2', role='author', hashed_password=get_password_hash('234'),api_access_token='none'),
-        User(username='user3', role='admin', hashed_password=get_password_hash('345'),api_access_token='none')
+        User(username='user1', role='reader', hashed_password=get_password_hash('123')),
+        User(username='user2', role='author', hashed_password=get_password_hash('234')),
+        User(username='user3', role='admin', hashed_password=get_password_hash('345'))
     ]
 
     articles=[

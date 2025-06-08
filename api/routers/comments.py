@@ -4,6 +4,8 @@ from typing import List
 from database import get_db
 from models import Comment, User, Article
 from PYD.comments import *
+from auth import get_current_user
+from auth import is_admin
 
 router = APIRouter(prefix='/api/comments', tags=['Comments'])
 
@@ -21,11 +23,12 @@ def get_comment_by_id(comment_id: int, db: Session = Depends(get_db)):
     return comment
 
 @router.delete('/{comment_id}', response_model=CommentReturn)
-def delete_comment(comment_id: int, db:Session = Depends(get_db)):
-    comment=db.query(Comment).filter(Comment.id==comment_id)
-
+def delete_comment(comment_id: int,user: Annotated[UserReturn, Depends(get_current_user)],db:Session = Depends(get_db)):
+    comment=db.query(Comment).filter(Comment.id==comment_id).first()
     if not comment:
         raise HTTPException(404, 'Комментария с таким id не найдено')
+    if not is_admin(user.role) or comment.user_id!=user.id:
+        raise HTTPException(401, detail="You don't have enough permissions")  
     
     db.delete(comment)
     db.commit()
@@ -33,16 +36,13 @@ def delete_comment(comment_id: int, db:Session = Depends(get_db)):
     return comment
 
 @router.post('/', response_model=CommentReturn)
-def create_comment(createData: CommentCreate,db:Session = Depends(get_db)):
-    user=db.query(User).filter(User.id==createData.user_id).first()
+def create_comment(createData: CommentCreate,user: Annotated[UserReturn, Depends(get_current_user)],db:Session = Depends(get_db)):
     article=db.query(Article).filter(Article.id==createData.article_id).first()
 
-    if not user:
-        raise HTTPException(400, "Не удалось найти пользователя по указанному id")
     if not article:
         raise HTTPException(400, "Не удалось найти статью по указанному id")
     
-    comment=Comment(**createData.model_dump())
+    comment=Comment(**createData.model_dump(exclude={'user_id'}))
     comment.user=user
     comment.article=article
 
@@ -53,11 +53,13 @@ def create_comment(createData: CommentCreate,db:Session = Depends(get_db)):
     return comment
 
 @router.put('/{comment_id}', response_model=CommentReturn)
-def update_comment(comment_id:int, updateData: CommentUpdate, db:Session = Depends(get_db)):
+def update_comment(comment_id:int, updateData: CommentUpdate,user: Annotated[UserReturn, Depends(get_current_user)],db:Session = Depends(get_db)):
     comment=db.query(Comment).filter(Comment.id==comment_id).first()
 
     if not comment:
         raise HTTPException(404, 'Комментария с таким id не найдено')
+    if not is_admin(user.role) or comment.user_id!=user.id:
+        raise HTTPException(401, detail="You don't have enough permissions")
     
     for field,value in updateData.model_dump().items():
         if value != None:

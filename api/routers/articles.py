@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from fastapi import Query
-from typing import List, Optional
+from typing import List, Optional, Annotated
 from database import get_db
 from models import Article, Category, User
 from PYD.articles import ArticleReturn, ArticleCreate, ArticleUpdate
+from PYD.users import UserReturn
+from auth import RoleChecker
+from auth import is_admin
 
 router=APIRouter(prefix='/api/posts', tags=['articles'])
 
@@ -26,16 +29,13 @@ def get_article_by_id(article_id: int, db: Session = Depends(get_db)):
     return article
 
 @router.post('/', response_model=ArticleReturn)
-def create_article(createData : ArticleCreate, db: Session = Depends(get_db)):
+def create_article(createData : ArticleCreate,user: Annotated[UserReturn, Depends(RoleChecker(allowed_roles=['author','admin']))],db:Session = Depends(get_db)):
     categories=db.query(Category).filter(Category.id.in_(createData.category_ids)).all()
-    user=db.query(User).filter(User.id == createData.author_id).first()
 
     if len(categories) != len(createData.category_ids):
         raise HTTPException(400, "Не удалось найти категории по указанным id")
-    if not user:
-        raise HTTPException(400, "Не удалось найти пользователя по указанному id")
-
-    article=Article(**createData.model_dump())
+    
+    article=Article(**createData.model_dump(exclude={'user_id'}))
     article.categories=categories
     article.author=user
 
@@ -46,11 +46,13 @@ def create_article(createData : ArticleCreate, db: Session = Depends(get_db)):
     return article
 
 @router.put('/{article_id}', response_model=ArticleReturn)
-def update_article(article_id:int, updateData: ArticleUpdate, db: Session = Depends(get_db)):
+def update_article(article_id:int, updateData: ArticleUpdate,user: Annotated[UserReturn, Depends(RoleChecker(allowed_roles=['author','admin']))],db:Session = Depends(get_db)):
     article = db.query(Article).filter(Article.id == article_id).first()
 
     if not article:
         raise HTTPException(404, "Статьи с таким id не найдено")
+    if not is_admin(user.role) or article.author_id!=user.id:
+        raise HTTPException(401, detail="You don't have enough permissions")
     
     for field,value in updateData.model_dump().items():
         if value != None:
@@ -70,13 +72,15 @@ def update_article(article_id:int, updateData: ArticleUpdate, db: Session = Depe
     return article
 
 @router.delete('/{article_id}', response_model=ArticleReturn)
-def delete_article(article_id: int, db: Session = Depends(get_db)):
+def delete_article(article_id: int,user: Annotated[UserReturn, Depends(RoleChecker(allowed_roles=['author','admin']))],db:Session = Depends(get_db)):
     db.expire_on_commit=False
 
     article = db.query(Article).filter(Article.id == article_id).first()
 
     if not article:
         raise HTTPException(404, "Статьи с таким id не найдено")
+    if not is_admin(user.role) or article.author_id!=user.id:
+        raise HTTPException(401, detail="You don't have enough permissions")
 
     db.delete(article)
     db.commit()

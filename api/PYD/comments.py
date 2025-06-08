@@ -18,7 +18,6 @@ class CommentReturn(CommentBase):
 
 class CommentCreate(CommentBase):
     article_id: Annotated[int, Field(exclude=True)]
-    user_id: Annotated[int, Field(exclude=True)]
 
 class CommentUpdate(CommentBase):
     content: Optional[str]=None
