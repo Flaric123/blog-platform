@@ -2,6 +2,7 @@ from sqlalchemy import (
     Column, Integer, String, Text, DateTime, Enum, ForeignKey, Table
 )
 from sqlalchemy.orm import relationship, declarative_base, Mapped, mapped_column
+from sqlalchemy.event import listens_for
 import enum
 from typing import List
 from datetime import datetime
@@ -61,6 +62,9 @@ class Comment(Base):
 
     article = relationship("Article", back_populates="comments")
     user = relationship("User", back_populates="comments")
+
+    # @listens_for(Article,'before_insert')
+    # def if_update_published
 
 #
 #   USERS
