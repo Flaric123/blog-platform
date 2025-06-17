@@ -1,4 +1,4 @@
-from models import Category, Comment, Article, User
+from models import Category, Comment, Article, User, Like
 from database import engine, get_db
 import models
 from auth import get_password_hash
@@ -129,6 +129,30 @@ with get_db().__next__() as session:
         )
         session.add(comment)
     
+    session.commit()
+
+    # Лайки
+    used_pairs = set()
+    likes = []
+    
+    for _ in range(10):
+        while True:
+            user_id = fake_user()
+            article = random.choice(articles)
+            pair = (user_id, article.id)
+            
+            if pair not in used_pairs:
+                used_pairs.add(pair)
+                break
+                
+        likes.append(
+            Like(
+                user=user_id,
+                article=article,
+            )
+        )
+    
+    session.add_all(likes)
     session.commit()
 
     print('Посев прошел успешно!')

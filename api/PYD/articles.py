@@ -1,9 +1,10 @@
 from datetime import datetime
 from enum import Enum
 from typing import List, Optional, Annotated
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 from PYD.categories import CategoryReturn
 from PYD.users import UserReturn
+from PYD.likes import LikeReturn
 from PYD.comments import CommentReturn
 
 class ArticleStatus(str, Enum):
@@ -23,6 +24,12 @@ class ArticleReturn(ArticleBase):
     updated_at: datetime
     categories: List[CategoryReturn]
     comments: List[CommentReturn]
+    likes: List[LikeReturn]
+
+    @computed_field
+    @property
+    def likes_count(self)->int:
+        return len(self.likes)
 
     class Config:
         orm_mode = True

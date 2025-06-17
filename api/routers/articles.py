@@ -9,15 +9,22 @@ from sqlalchemy.sql import text
 from PYD.users import UserReturn
 from auth import RoleChecker
 from auth import is_admin
+import enum
+from sqlalchemy import Enum
 
-router=APIRouter(prefix='/api/posts', tags=['articles'])
+router=APIRouter(tags=['articles'])
+
+class SortOrder(enum.Enum):
+    asc='asc'
+    desc='desc'
 
 @router.get('/', response_model=List[ArticleReturn])
 def get_all_articles(db: Session = Depends(get_db),
                      page: Optional[int]=Query(None,ge=1),
                      limit: Optional[int] = Query(None, ge=1, le=100),
                      category: Optional[str]=Query(None),
-                     status: Optional[ArticleStatus]=Query(None)):
+                     status: Optional[ArticleStatus]=Query(None),
+                     sort_by_popularity: Optional[SortOrder]=Query(None)):
     articles=db.query(Article)
     if category!=None:
         db_category=db.query(Category).filter(Category.name==category).first()
@@ -32,7 +39,10 @@ def get_all_articles(db: Session = Depends(get_db),
     filtered_articles=articles.all()
     paginated_articles=filtered_articles[min_offset:max_offset]
 
-    return paginated_articles
+    if sort_by_popularity!=None:
+        return sorted(paginated_articles, key=lambda x: len(x.likes),reverse=False if sort_by_popularity==SortOrder.asc else True)
+    else:
+        return paginated_articles
 
 @router.get('/{article_id}', response_model=ArticleReturn)
 def get_article_by_id(article_id: int, db: Session = Depends(get_db)):

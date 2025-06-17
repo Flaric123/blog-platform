@@ -1,15 +1,17 @@
 from fastapi import FastAPI
 from fastapi.security import OAuth2PasswordRequestForm
-from routers import articles, categories, comments, users
+from routers import articles, categories, comments, likes
 from fastapi.middleware.cors import CORSMiddleware
 from PYD.users import UserReturn
 from auth import *
 
 app = FastAPI()
+APP_PREFIX='/api'
 
-app.include_router(categories.router)
-app.include_router(articles.router)
-app.include_router(comments.router)
+app.include_router(categories.router, prefix=f'{APP_PREFIX}/posts')
+app.include_router(articles.router, prefix=f'{APP_PREFIX}/articles')
+app.include_router(comments.router, prefix=f'{APP_PREFIX}/comments')
+app.include_router(likes.router, prefix=f'{APP_PREFIX}/likes')
 
 app.add_middleware(
     CORSMiddleware,

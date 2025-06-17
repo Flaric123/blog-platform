@@ -7,7 +7,7 @@ from PYD.comments import *
 from auth import get_current_user
 from auth import is_admin
 
-router = APIRouter(prefix='/api/comments', tags=['Comments'])
+router = APIRouter(tags=['Comments'])
 
 @router.get('/', response_model=List[CommentReturn])
 def get_all_comments(db: Session = Depends(get_db)):

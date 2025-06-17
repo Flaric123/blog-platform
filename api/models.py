@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Integer, String, Text, DateTime, Enum, ForeignKey, Table
+    Column, Integer, String, Text, DateTime, Enum, ForeignKey, Table, event, UniqueConstraint
 )
 from sqlalchemy.orm import relationship, declarative_base, Mapped, mapped_column
 from sqlalchemy.event import listens_for
@@ -39,6 +39,7 @@ class Article(Base):
     author = relationship("User", back_populates="articles")
     comments = relationship("Comment", back_populates="article", cascade="all, delete-orphan")
     categories = relationship("Category", secondary=article_category_table, back_populates="articles")
+    likes = relationship("Like", back_populates="article", cascade="all, delete-orphan")
 
 class Category(Base):
     __tablename__ = "categories"
@@ -66,6 +67,20 @@ class Comment(Base):
     # @listens_for(Article,'before_insert')
     # def if_update_published
 
+class Like(Base):
+    __tablename__="likes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    article_id = Column(Integer, ForeignKey("articles.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(DateTime, default=datetime.now())
+    
+    user = relationship("User", back_populates="likes")
+    article = relationship("Article", back_populates="likes")
+
+    __table_args__ = (
+        UniqueConstraint('user_id', 'article_id', name='uq_user_article_like'),
+    )
 #
 #   USERS
 #
@@ -81,6 +96,7 @@ class User(Base):
     # Relationships
     articles = relationship("Article", back_populates="author", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="user", cascade="all, delete-orphan")
+    likes = relationship("Like", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(id={self.id}, name='{self.username}')>"
