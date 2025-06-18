@@ -43,7 +43,6 @@ with get_db().__next__() as session:
             title="The Rise of AI in Everyday Life",
             content="Artificial Intelligence is transforming how we live and work...",
             status=ArticleStatus.published,
-            published_at=datetime.now() - timedelta(days=10),
             categories=[categories[0], categories[7]]  # Technology, Science
         ),
         Article(
@@ -51,7 +50,6 @@ with get_db().__next__() as session:
             title="10 Tips for a Healthier Lifestyle",
             content="Living healthy is a combination of diet, exercise and mindset...",
             status=ArticleStatus.published,
-            published_at=datetime.now() - timedelta(days=20),
             categories=[categories[1], categories[6]]  # Health, Lifestyle
         ),
         Article(
@@ -59,7 +57,6 @@ with get_db().__next__() as session:
             title="Exploring the Alps: A Travel Guide",
             content="The Alps are a great destination for adventure and relaxation...",
             status=ArticleStatus.published,
-            published_at=datetime.now() - timedelta(days=30),
             categories=[categories[2]]  # Travel
         ),
         Article(
@@ -74,7 +71,6 @@ with get_db().__next__() as session:
             title="Delicious Vegan Recipes for Beginners",
             content="Eating vegan can be easy and delicious with these simple recipes...",
             status=ArticleStatus.published,
-            published_at=datetime.now() - timedelta(days=5),
             categories=[categories[5], categories[6]]  # Food, Lifestyle
         ),
         Article(
@@ -82,7 +78,6 @@ with get_db().__next__() as session:
             title="The Future of Space Exploration",
             content="Space agencies worldwide are planning new missions to Mars and beyond...",
             status=ArticleStatus.published,
-            published_at=datetime.now() - timedelta(days=15),
             categories=[categories[7]]  # Science
         ),
         Article(
@@ -90,7 +85,6 @@ with get_db().__next__() as session:
             title="How to Manage Personal Finances Effectively",
             content="Budgeting and saving are keys to financial freedom...",
             status=ArticleStatus.published,
-            published_at=datetime.now() - timedelta(days=25),
             categories=[categories[4], categories[3]]  # Finance, Education
         ),
         Article(
@@ -98,7 +92,6 @@ with get_db().__next__() as session:
             title="Top 5 Sports Events to Watch This Year",
             content="From the Olympics to the World Cup, sports fans have much to look forward to...",
             status=ArticleStatus.published,
-            published_at=datetime.now() - timedelta(days=7),
             categories=[categories[8], categories[9]]  # Sports, Entertainment
         ),
         Article(
@@ -106,7 +99,6 @@ with get_db().__next__() as session:
             title="The Importance of Mental Health Awareness",
             content="Mental health is as important as physical health...",
             status=ArticleStatus.published,
-            published_at=datetime.now() - timedelta(days=12),
             categories=[categories[1], categories[3]]  # Health, Education
         ),
         Article(

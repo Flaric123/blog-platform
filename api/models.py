@@ -35,17 +35,28 @@ class Article(Base):
     published_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.now())
     updated_at = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
+    last_changed_by_user_id=Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
 
     author = relationship("User", back_populates="articles")
     comments = relationship("Comment", back_populates="article", cascade="all, delete-orphan")
     categories = relationship("Category", secondary=article_category_table, back_populates="articles")
     likes = relationship("Like", back_populates="article", cascade="all, delete-orphan")
 
+@event.listens_for(Article.status, 'set')
+def update_published_at(target,value,oldValue, initiator):
+    if value==ArticleStatus.published:
+        target.published_at=datetime.now()
+    else:
+        target.published_at=None
+
 class Category(Base):
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), unique=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.now())
+    updated_at = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
+    last_changed_by_user_id=Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
 
     articles = relationship("Article", secondary=article_category_table, back_populates="categories")
 
@@ -60,12 +71,11 @@ class Comment(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.now())
+    updated_at = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
+    last_changed_by_user_id=Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
 
     article = relationship("Article", back_populates="comments")
     user = relationship("User", back_populates="comments")
-
-    # @listens_for(Article,'before_insert')
-    # def if_update_published
 
 class Like(Base):
     __tablename__="likes"
@@ -74,6 +84,8 @@ class Like(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     article_id = Column(Integer, ForeignKey("articles.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, default=datetime.now())
+    updated_at = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
+    last_changed_by_user_id=Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     
     user = relationship("User", back_populates="likes")
     article = relationship("Article", back_populates="likes")

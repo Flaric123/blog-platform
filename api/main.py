@@ -21,7 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/token")
+@app.post("/api/token", tags=['auth'])
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db:Session=Depends(get_db)
 ) -> Token:
@@ -37,14 +37,6 @@ async def login_for_access_token(
     )
     return Token(access_token=access_token, token_type="bearer")
 
-@app.get('/verify-token/{token}')
-async def verify_user_token(token: str):
-    verify_token(token=token)
-    return {"message":"Token is valid"}
-
-@app.get("/users/me/")
-async def read_users_me(
-    user: Annotated[UserReturn, Depends(RoleChecker(allowed_roles=['admin']))],
-    db: Session=Depends(get_db)
-):
+@app.get("/api/me")
+async def get_current_user(user:Annotated[UserReturn,Depends(get_current_user)]):
     return user

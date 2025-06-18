@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Annotated
 from database import get_db
 from models import Category
+from auth import RoleChecker
 from PYD.categories import CategoryCreate,CategoryReturn, CategoryUpdate
+from PYD.users import UserReturn
 
 router=APIRouter(tags=['categories'])
 
@@ -21,7 +23,7 @@ def get_category_by_id(category_id: int, db: Session = Depends(get_db)):
     return category
 
 @router.delete('/{category_id}', response_model=CategoryReturn)
-def delete_category(category_id: int, db: Session = Depends(get_db)):
+def delete_category(category_id: int, db: Session = Depends(get_db), user=Annotated[UserReturn,Depends(RoleChecker(allowed_roles=['admin']))]):
     category = db.query(Category).filter(Category.id == category_id).first()
 
     if not category:
@@ -33,7 +35,7 @@ def delete_category(category_id: int, db: Session = Depends(get_db)):
     return category
 
 @router.put('/{category_id}', response_model=CategoryReturn)
-def update_category(updateData: CategoryUpdate, category_id: int, db: Session = Depends(get_db)):
+def update_category(updateData: CategoryUpdate, category_id: int, db: Session = Depends(get_db), user=Annotated[UserReturn,Depends(RoleChecker(allowed_roles=['admin']))]):
     category = db.query(Category).filter(Category.id == category_id).first()
 
     if not category:
@@ -42,14 +44,18 @@ def update_category(updateData: CategoryUpdate, category_id: int, db: Session = 
     for field,value in updateData.model_dump().items():
         setattr(category, field, value)
 
+    category.last_changed_by_user_id=user.id
+
     db.commit()
     db.refresh(category)
 
     return category
 
 @router.post('/', response_model=CategoryReturn)
-def create_category(createData: CategoryCreate, db: Session = Depends(get_db)):
+def create_category(createData: CategoryCreate, db: Session = Depends(get_db), user=Annotated[UserReturn,Depends(RoleChecker(allowed_roles=['admin']))]):
     category = Category(**createData.model_dump())
+
+    category.last_changed_by_user_id=user.id
 
     db.add(category)
     db.commit()

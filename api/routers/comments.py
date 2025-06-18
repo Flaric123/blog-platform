@@ -7,7 +7,7 @@ from PYD.comments import *
 from auth import get_current_user
 from auth import is_admin
 
-router = APIRouter(tags=['Comments'])
+router = APIRouter(tags=['comments'])
 
 @router.get('/', response_model=List[CommentReturn])
 def get_all_comments(db: Session = Depends(get_db)):
@@ -27,8 +27,8 @@ def delete_comment(comment_id: int,user: Annotated[UserReturn, Depends(get_curre
     comment=db.query(Comment).filter(Comment.id==comment_id).first()
     if not comment:
         raise HTTPException(404, 'Комментария с таким id не найдено')
-    if not is_admin(user.role) or comment.user_id!=user.id:
-        raise HTTPException(401, detail="You don't have enough permissions")  
+    if not is_admin(user.role) and comment.user_id!=user.id:
+        raise HTTPException(401, detail="У вас недостаточно прав")
     
     db.delete(comment)
     db.commit()
@@ -46,6 +46,8 @@ def create_comment(createData: CommentCreate,user: Annotated[UserReturn, Depends
     comment.user=user
     comment.article=article
 
+    comment.last_changed_by_user_id=user.id
+
     db.add(comment)
     db.commit()
     db.refresh(comment)
@@ -58,12 +60,14 @@ def update_comment(comment_id:int, updateData: CommentUpdate,user: Annotated[Use
 
     if not comment:
         raise HTTPException(404, 'Комментария с таким id не найдено')
-    if not is_admin(user.role) or comment.user_id!=user.id:
-        raise HTTPException(401, detail="You don't have enough permissions")
+    if not is_admin(user.role) and comment.user_id!=user.id:
+        raise HTTPException(401, detail="У вас недостаточно прав")
     
     for field,value in updateData.model_dump().items():
         if value != None:
             setattr(comment, field, value)
+
+    comment.last_changed_by_user_id=user.id
 
     db.commit()
     db.refresh(comment)

@@ -20,8 +20,8 @@ class SortOrder(enum.Enum):
 
 @router.get('/', response_model=List[ArticleReturn])
 def get_all_articles(db: Session = Depends(get_db),
-                     page: Optional[int]=Query(None,ge=1),
-                     limit: Optional[int] = Query(None, ge=1, le=100),
+                     page: int=Query(ge=1,example=1),
+                     limit: int = Query(ge=1, le=100, example=2),
                      category: Optional[str]=Query(None),
                      status: Optional[ArticleStatus]=Query(None),
                      sort_by_popularity: Optional[SortOrder]=Query(None)):
@@ -64,6 +64,8 @@ def create_article(createData : ArticleCreate,user: Annotated[UserReturn, Depend
     article.categories=categories
     article.author=user
 
+    article.last_changed_by_user_id=user.id
+
     db.add(article)
     db.commit()
     db.refresh(article)
@@ -76,8 +78,8 @@ def update_article(article_id:int, updateData: ArticleUpdate,user: Annotated[Use
 
     if not article:
         raise HTTPException(404, "Статьи с таким id не найдено")
-    if not is_admin(user.role) or article.author_id!=user.id:
-        raise HTTPException(401, detail="You don't have enough permissions")
+    if not is_admin(user.role) and article.author_id!=user.id:
+        raise HTTPException(401, detail="У вас недостаточно прав")
     
     for field,value in updateData.model_dump().items():
         if value != None:
@@ -90,6 +92,8 @@ def update_article(article_id:int, updateData: ArticleUpdate,user: Annotated[Use
             raise HTTPException(400, 'Не удалось найти категории по указанным id')
         
         article.categories=categories
+
+    article.last_changed_by_user_id=user.id
 
     db.commit()
     db.refresh(article)
@@ -104,8 +108,8 @@ def delete_article(article_id: int,user: Annotated[UserReturn, Depends(RoleCheck
 
     if not article:
         raise HTTPException(404, "Статьи с таким id не найдено")
-    if not is_admin(user.role) or article.author_id!=user.id:
-        raise HTTPException(401, detail="You don't have enough permissions")
+    if not is_admin(user.role) and article.author_id!=user.id:
+        raise HTTPException(401, detail="У вас недостаточно прав")
 
     db.delete(article)
     db.commit()

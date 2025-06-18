@@ -11,7 +11,7 @@ from models import User
 from PYD.users import UserReturn
 from database import get_db
   
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")  
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")  
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
@@ -21,16 +21,8 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-
 class TokenData(BaseModel):
     username: str | None = None
-
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-app = FastAPI()
 
 #
 #   HASH LOGIC
@@ -120,7 +112,7 @@ class RoleChecker:
     raise HTTPException(401, detail="You don't have enough permissions")
   
 def is_admin(role):
-    if role!='admin':
-        return False
-    else:
+    if role=='admin':
         return True
+    else:
+        return False
