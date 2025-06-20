@@ -10,7 +10,7 @@ from PYD.users import UserReturn
 from auth import RoleChecker
 from auth import is_admin
 import enum
-from sqlalchemy import Enum
+from sqlalchemy import Enum, func
 
 router=APIRouter(tags=['articles'])
 
@@ -31,18 +31,19 @@ def get_all_articles(db: Session = Depends(get_db),
         if not db_category:
             raise HTTPException(404, "Категория с таким имененем не найдена")
         articles=articles.filter(Article.categories.contains(db_category))
+
     if status!=None:
         articles=articles.filter(Article.status==status)
+
     min_offset=(page-1)*limit
-    max_offset=min_offset+limit
-
-    filtered_articles=articles.all()
-    paginated_articles=filtered_articles[min_offset:max_offset]
-
     if sort_by_popularity!=None:
-        return sorted(paginated_articles, key=lambda x: len(x.likes),reverse=False if sort_by_popularity==SortOrder.asc else True)
-    else:
-        return paginated_articles
+        if sort_by_popularity==SortOrder.desc:
+            articles=articles.order_by(Article.likes_count.desc())
+        else:
+            articles=articles.order_by(Article.likes_count)
+    paginated_articles=articles.offset(min_offset).limit(limit).all()
+
+    return paginated_articles
 
 @router.get('/{article_id}', response_model=ArticleReturn)
 def get_article_by_id(article_id: int, db: Session = Depends(get_db)):

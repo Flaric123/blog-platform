@@ -1,11 +1,12 @@
 from sqlalchemy import (
-    Column, Integer, String, Text, DateTime, Enum, ForeignKey, Table, event, UniqueConstraint
+    Column, Integer, String, Text, DateTime, Enum, ForeignKey, Table, event, UniqueConstraint, select, func
 )
-from sqlalchemy.orm import relationship, declarative_base, Mapped, mapped_column
+from sqlalchemy.orm import relationship, declarative_base, Mapped, mapped_column, aliased
 from sqlalchemy.event import listens_for
 import enum
 from typing import List
 from datetime import datetime
+from sqlalchemy.ext.hybrid import hybrid_property
 
 Base = declarative_base()
 
@@ -35,7 +36,21 @@ class Article(Base):
     published_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.now())
     updated_at = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
-    last_changed_by_user_id=Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    last_changed_by_user_id=Column(Integer)
+
+    @hybrid_property
+    def likes_count(self):
+        return len(self.likes)
+    
+    @likes_count.expression
+    def likes_count(cls):
+        likesAlias=aliased(Like)
+        return (
+            select(func.count(likesAlias.id))
+            .where(likesAlias.article_id == cls.id)
+            .correlate(cls)
+            .scalar_subquery()
+        )
 
     author = relationship("User", back_populates="articles")
     comments = relationship("Comment", back_populates="article", cascade="all, delete-orphan")
@@ -56,7 +71,7 @@ class Category(Base):
     name = Column(String(50), unique=True, nullable=False)
     created_at = Column(DateTime, default=datetime.now())
     updated_at = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
-    last_changed_by_user_id=Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    last_changed_by_user_id=Column(Integer)
 
     articles = relationship("Article", secondary=article_category_table, back_populates="categories")
 
@@ -72,7 +87,7 @@ class Comment(Base):
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.now())
     updated_at = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
-    last_changed_by_user_id=Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    last_changed_by_user_id=Column(Integer)
 
     article = relationship("Article", back_populates="comments")
     user = relationship("User", back_populates="comments")
@@ -85,7 +100,6 @@ class Like(Base):
     article_id = Column(Integer, ForeignKey("articles.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, default=datetime.now())
     updated_at = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
-    last_changed_by_user_id=Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     
     user = relationship("User", back_populates="likes")
     article = relationship("Article", back_populates="likes")

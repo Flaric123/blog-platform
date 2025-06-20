@@ -8,6 +8,7 @@ class CategoryBase(BaseModel):
 
 class CategoryReturn(CategoryBase):
     id: int
+    last_changed_by_user_id: Optional[int]
 
     class Config:
         orm_mode = True

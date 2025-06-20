@@ -24,15 +24,14 @@ class ArticleReturn(ArticleBase):
     updated_at: datetime
     categories: List[CategoryReturn]
     comments: List[CommentReturn]
-    likes: List[LikeReturn]
-
-    @computed_field
-    @property
-    def likes_count(self)->int:
-        return len(self.likes)
+    likes_count: int
+    last_changed_by_user_id: Optional[int]
 
     class Config:
-        orm_mode = True
+        orm_mode: True
+
+# class ArticleReturnAdmin(ArticleBase):
+
 
 class ArticleCreate(ArticleBase):
     status: ArticleStatus = ArticleStatus.draft

@@ -12,6 +12,7 @@ class CommentReturn(CommentBase):
     user: UserReturn
     article_id: int
     created_at: datetime
+    last_changed_by_user_id: Optional[int]
 
     class Config:
         orm_mode = True

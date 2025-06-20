@@ -23,7 +23,7 @@ def get_category_by_id(category_id: int, db: Session = Depends(get_db)):
     return category
 
 @router.delete('/{category_id}', response_model=CategoryReturn)
-def delete_category(category_id: int, db: Session = Depends(get_db), user=Annotated[UserReturn,Depends(RoleChecker(allowed_roles=['admin']))]):
+def delete_category(category_id: int,user:Annotated[UserReturn,Depends(RoleChecker(allowed_roles=['admin']))],db: Session = Depends(get_db)):
     category = db.query(Category).filter(Category.id == category_id).first()
 
     if not category:
@@ -35,7 +35,7 @@ def delete_category(category_id: int, db: Session = Depends(get_db), user=Annota
     return category
 
 @router.put('/{category_id}', response_model=CategoryReturn)
-def update_category(updateData: CategoryUpdate, category_id: int, db: Session = Depends(get_db), user=Annotated[UserReturn,Depends(RoleChecker(allowed_roles=['admin']))]):
+def update_category(updateData: CategoryUpdate, category_id: int,user:Annotated[UserReturn,Depends(RoleChecker(allowed_roles=['admin']))],db: Session = Depends(get_db)):
     category = db.query(Category).filter(Category.id == category_id).first()
 
     if not category:
@@ -52,7 +52,7 @@ def update_category(updateData: CategoryUpdate, category_id: int, db: Session = 
     return category
 
 @router.post('/', response_model=CategoryReturn)
-def create_category(createData: CategoryCreate, db: Session = Depends(get_db), user=Annotated[UserReturn,Depends(RoleChecker(allowed_roles=['admin']))]):
+def create_category(createData: CategoryCreate,user:Annotated[UserReturn,Depends(RoleChecker(allowed_roles=['admin']))],db: Session = Depends(get_db)):
     category = Category(**createData.model_dump())
 
     category.last_changed_by_user_id=user.id
