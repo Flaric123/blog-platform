@@ -8,6 +8,8 @@ class CategoryBase(BaseModel):
 
 class CategoryReturn(CategoryBase):
     id: int
+    created_at: datetime
+    updated_at: datetime
     last_changed_by_user_id: Optional[int]
 
     class Config:
